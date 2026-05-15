@@ -20,7 +20,11 @@ exports.handler = async (event) => {
       quantity: item.cantidad || 1,
     }))
 
-    const session = await stripe.checkout.sessions.create({
+    const stripe_client = require('stripe')(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2023-10-16'
+    })
+
+    const session = await stripe_client.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
@@ -30,11 +34,10 @@ exports.handler = async (event) => {
       metadata: { nombre }
     })
 
-    console.log('Session ID:', session.id)
     console.log('Session URL:', session.url)
+    console.log('Session ID:', session.id)
 
-    // Si Stripe no devuelve url, construirla manualmente
-    const url = session.url || `https://checkout.stripe.com/c/pay/${session.id}`
+    const url = session.url || `https://checkout.stripe.com/pay/${session.id}`
 
     return {
       statusCode: 200,
