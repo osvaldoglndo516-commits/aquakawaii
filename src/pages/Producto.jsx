@@ -9,9 +9,13 @@ export default function Producto({ agregarAlCarrito }) {
   const [loading, setLoading] = useState(true)
   const [colorElegido, setColorElegido] = useState('')
   const [agregado, setAgregado] = useState(false)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
   useEffect(() => {
     cargarProducto()
+    const handleResize = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
   }, [id])
 
   async function cargarProducto() {
@@ -72,14 +76,17 @@ export default function Producto({ agregarAlCarrito }) {
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: '#fdf0f8', padding: '30px' }}>
+    <div style={{ minHeight: '100vh', background: '#fdf0f8', padding: isMobile ? '15px' : '30px' }}>
       <div style={{
         maxWidth: '900px', margin: '0 auto',
         background: 'white', borderRadius: '30px',
         overflow: 'hidden',
         boxShadow: '0 20px 60px rgba(0,0,0,0.1)'
       }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr'
+        }}>
 
           {/* Imagen */}
           <div style={{
@@ -87,20 +94,23 @@ export default function Producto({ agregarAlCarrito }) {
               ? 'linear-gradient(135deg, #fff0f8, #f0e6ff)'
               : 'linear-gradient(135deg, #f0f8ff, #e6fff0)',
             display: 'flex', justifyContent: 'center',
-            alignItems: 'center', padding: '40px'
+            alignItems: 'center',
+            padding: isMobile ? '25px' : '40px'
           }}>
             <img
               src={getImagen(producto.nombre)}
               alt={producto.nombre}
               style={{
-                width: '100%', maxWidth: '300px',
-                height: '300px', objectFit: 'contain'
+                width: '100%',
+                maxWidth: isMobile ? '200px' : '300px',
+                height: isMobile ? '200px' : '300px',
+                objectFit: 'contain'
               }}
             />
           </div>
 
           {/* Info */}
-          <div style={{ padding: '40px' }}>
+          <div style={{ padding: isMobile ? '20px' : '40px' }}>
 
             {producto.es_edicion_especial && (
               <div style={{
@@ -114,12 +124,16 @@ export default function Producto({ agregarAlCarrito }) {
               </div>
             )}
 
-            <h1 style={{ fontSize: '32px', margin: '0 0 10px 0', color: '#333' }}>
+            <h1 style={{
+              fontSize: isMobile ? '24px' : '32px',
+              margin: '0 0 10px 0', color: '#333'
+            }}>
               {producto.nombre}
             </h1>
 
             <p style={{
-              fontSize: '36px', fontWeight: 'bold', margin: '0 0 20px 0',
+              fontSize: isMobile ? '28px' : '36px',
+              fontWeight: 'bold', margin: '0 0 20px 0',
               color: producto.es_edicion_especial ? '#ff8c00' : '#ff6b9d'
             }}>
               ${producto.precio} MXN
