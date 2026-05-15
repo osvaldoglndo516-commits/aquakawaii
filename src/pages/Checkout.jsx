@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 export default function Checkout({ carrito, vaciarCarrito, usuario }) {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [form, setForm] = useState({
     nombre: usuario?.user_metadata?.nombre || '',
     email: usuario?.email || '',
@@ -57,7 +58,6 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
       })
 
       const data = await response.json()
-      console.log('Respuesta función:', data)
 
       if (data.error) throw new Error(data.error)
 
@@ -98,25 +98,72 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#fdf0f8', padding: '30px' }}>
+    <div style={{ minHeight: '100vh', background: '#fdf0f8', padding: isMobile ? '15px' : '30px' }}>
       <div style={{
         maxWidth: '800px', margin: '0 auto',
-        display: 'grid', gridTemplateColumns: '1fr 1fr',
-        gap: '25px'
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+        gap: '20px'
       }}>
+
+        {/* Resumen — va primero en mobile */}
+        {isMobile && (
+          <div>
+            <div style={{
+              background: 'white', borderRadius: '25px',
+              padding: '20px',
+              boxShadow: '0 8px 25px rgba(0,0,0,0.08)',
+              marginBottom: '15px'
+            }}>
+              <h2 style={{ margin: '0 0 15px 0', color: '#333', fontSize: '18px' }}>
+                🛒 Resumen
+              </h2>
+              {carrito.map((item, i) => (
+                <div key={i} style={{
+                  display: 'flex', justifyContent: 'space-between',
+                  alignItems: 'center', padding: '8px 0',
+                  borderBottom: i < carrito.length - 1 ? '1px solid #f0f0f0' : 'none'
+                }}>
+                  <div>
+                    <p style={{ margin: '0 0 2px 0', fontWeight: '600', fontSize: '13px', color: '#333' }}>
+                      {item.nombre}
+                    </p>
+                    <p style={{ margin: 0, fontSize: '11px', color: '#aaa' }}>
+                      Color: {item.colorElegido}
+                    </p>
+                  </div>
+                  <span style={{ fontWeight: 'bold', color: '#ff6b9d', fontSize: '14px' }}>
+                    ${item.precio}
+                  </span>
+                </div>
+              ))}
+              <div style={{
+                borderTop: '2px solid #f0f0f0',
+                paddingTop: '12px', marginTop: '8px',
+                display: 'flex', justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <span style={{ fontWeight: 'bold', fontSize: '16px', color: '#333' }}>Total</span>
+                <span style={{ fontWeight: 'bold', fontSize: '20px', color: '#ff6b9d' }}>
+                  ${total} MXN
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Formulario */}
         <div style={{
           background: 'white', borderRadius: '25px',
-          padding: '30px',
+          padding: isMobile ? '20px' : '30px',
           boxShadow: '0 8px 25px rgba(0,0,0,0.08)'
         }}>
-          <h2 style={{ margin: '0 0 25px 0', color: '#333', fontSize: '22px' }}>
+          <h2 style={{ margin: '0 0 20px 0', color: '#333', fontSize: isMobile ? '18px' : '22px' }}>
             📋 Datos de envío
           </h2>
 
           <form onSubmit={handlePago} style={{
-            display: 'flex', flexDirection: 'column', gap: '16px'
+            display: 'flex', flexDirection: 'column', gap: '14px'
           }}>
             <div>
               <label style={{
@@ -135,7 +182,7 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
                   width: '100%', padding: '12px 16px',
                   border: '2px solid #eee', borderRadius: '12px',
                   fontSize: '15px', outline: 'none',
-                  boxSizing: 'border-box', transition: 'border-color 0.2s'
+                  boxSizing: 'border-box'
                 }}
                 onFocus={e => e.target.style.borderColor = '#ff6b9d'}
                 onBlur={e => e.target.style.borderColor = '#eee'}
@@ -160,7 +207,7 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
                   width: '100%', padding: '12px 16px',
                   border: '2px solid #eee', borderRadius: '12px',
                   fontSize: '15px', outline: 'none',
-                  boxSizing: 'border-box', transition: 'border-color 0.2s'
+                  boxSizing: 'border-box'
                 }}
                 onFocus={e => e.target.style.borderColor = '#ff6b9d'}
                 onBlur={e => e.target.style.borderColor = '#eee'}
@@ -183,7 +230,7 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
                   width: '100%', padding: '12px 16px',
                   border: '2px solid #eee', borderRadius: '12px',
                   fontSize: '15px', outline: 'none',
-                  boxSizing: 'border-box', transition: 'border-color 0.2s'
+                  boxSizing: 'border-box'
                 }}
                 onFocus={e => e.target.style.borderColor = '#ff6b9d'}
                 onBlur={e => e.target.style.borderColor = '#eee'}
@@ -201,9 +248,8 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
                 color: 'white', border: 'none',
                 borderRadius: '15px', fontSize: '17px',
                 fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer',
-                marginTop: '10px',
-                boxShadow: loading ? 'none' : '0 4px 15px rgba(255,107,157,0.4)',
-                transition: 'all 0.3s'
+                marginTop: '8px',
+                boxShadow: loading ? 'none' : '0 4px 15px rgba(255,107,157,0.4)'
               }}
             >
               {loading ? '⏳ Procesando...' : '💳 Pagar con Stripe'}
@@ -211,64 +257,63 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
           </form>
         </div>
 
-        {/* Resumen */}
-        <div>
-          <div style={{
-            background: 'white', borderRadius: '25px',
-            padding: '25px',
-            boxShadow: '0 8px 25px rgba(0,0,0,0.08)',
-            marginBottom: '15px'
-          }}>
-            <h2 style={{ margin: '0 0 20px 0', color: '#333', fontSize: '20px' }}>
-              🛒 Resumen
-            </h2>
-
-            {carrito.map((item, i) => (
-              <div key={i} style={{
-                display: 'flex', justifyContent: 'space-between',
-                alignItems: 'center', padding: '10px 0',
-                borderBottom: i < carrito.length - 1 ? '1px solid #f0f0f0' : 'none'
-              }}>
-                <div>
-                  <p style={{ margin: '0 0 3px 0', fontWeight: '600', fontSize: '14px', color: '#333' }}>
-                    {item.nombre}
-                  </p>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#aaa' }}>
-                    Color: {item.colorElegido}
-                  </p>
+        {/* Resumen desktop */}
+        {!isMobile && (
+          <div>
+            <div style={{
+              background: 'white', borderRadius: '25px',
+              padding: '25px',
+              boxShadow: '0 8px 25px rgba(0,0,0,0.08)',
+              marginBottom: '15px'
+            }}>
+              <h2 style={{ margin: '0 0 20px 0', color: '#333', fontSize: '20px' }}>
+                🛒 Resumen
+              </h2>
+              {carrito.map((item, i) => (
+                <div key={i} style={{
+                  display: 'flex', justifyContent: 'space-between',
+                  alignItems: 'center', padding: '10px 0',
+                  borderBottom: i < carrito.length - 1 ? '1px solid #f0f0f0' : 'none'
+                }}>
+                  <div>
+                    <p style={{ margin: '0 0 3px 0', fontWeight: '600', fontSize: '14px', color: '#333' }}>
+                      {item.nombre}
+                    </p>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#aaa' }}>
+                      Color: {item.colorElegido}
+                    </p>
+                  </div>
+                  <span style={{ fontWeight: 'bold', color: '#ff6b9d' }}>
+                    ${item.precio}
+                  </span>
                 </div>
-                <span style={{ fontWeight: 'bold', color: '#ff6b9d' }}>
-                  ${item.precio}
+              ))}
+              <div style={{
+                borderTop: '2px solid #f0f0f0',
+                paddingTop: '15px', marginTop: '10px',
+                display: 'flex', justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <span style={{ fontWeight: 'bold', fontSize: '18px', color: '#333' }}>Total</span>
+                <span style={{ fontWeight: 'bold', fontSize: '24px', color: '#ff6b9d' }}>
+                  ${total} MXN
                 </span>
               </div>
-            ))}
+            </div>
 
             <div style={{
-              borderTop: '2px solid #f0f0f0',
-              paddingTop: '15px', marginTop: '10px',
-              display: 'flex', justifyContent: 'space-between',
-              alignItems: 'center'
+              background: 'linear-gradient(135deg, #f0fff4, #e6f7ff)',
+              borderRadius: '15px', padding: '15px', textAlign: 'center'
             }}>
-              <span style={{ fontWeight: 'bold', fontSize: '18px', color: '#333' }}>Total</span>
-              <span style={{ fontWeight: 'bold', fontSize: '24px', color: '#ff6b9d' }}>
-                ${total} MXN
-              </span>
+              <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', color: '#555', fontSize: '14px' }}>
+                🔒 Pago 100% seguro
+              </p>
+              <p style={{ margin: 0, color: '#888', fontSize: '12px' }}>
+                Procesado por Stripe • SSL encriptado
+              </p>
             </div>
           </div>
-
-          {/* Seguridad */}
-          <div style={{
-            background: 'linear-gradient(135deg, #f0fff4, #e6f7ff)',
-            borderRadius: '15px', padding: '15px', textAlign: 'center'
-          }}>
-            <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', color: '#555', fontSize: '14px' }}>
-              🔒 Pago 100% seguro
-            </p>
-            <p style={{ margin: 0, color: '#888', fontSize: '12px' }}>
-              Procesado por Stripe • SSL encriptado
-            </p>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )
