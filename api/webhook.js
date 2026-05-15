@@ -13,8 +13,8 @@ module.exports = async function handler(req, res) {
   }
 
   const sig = req.headers['stripe-signature']
+  
   let event
-
   try {
     event = stripe.webhooks.constructEvent(
       req.body,
@@ -22,18 +22,23 @@ module.exports = async function handler(req, res) {
       process.env.STRIPE_WEBHOOK_SECRET
     )
   } catch (err) {
-    return res.status(400).json({ error: `Webhook Error: ${err.message}` })
+    console.log('Webhook error:', err.message)
+    return res.status(400).send(`Webhook Error: ${err.message}`)
   }
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object
     const email = session.customer_email
 
-    await supabase
+    console.log('Pago completado para:', email)
+
+    const { error } = await supabase
       .from('pedidos')
       .update({ estado: 'pagado' })
       .eq('email_cliente', email)
       .eq('estado', 'pendiente')
+
+    if (error) console.log('Supabase error:', error)
   }
 
   return res.status(200).json({ received: true })
