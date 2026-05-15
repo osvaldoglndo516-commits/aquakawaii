@@ -29,19 +29,20 @@ export default function Producto({ agregarAlCarrito }) {
     setLoading(false)
   }
 
-  function getEmoji(nombre) {
-    if (nombre?.includes('Capibara')) return '🦫'
-    if (nombre?.includes('Panda')) return '🐼'
-    if (nombre?.includes('Koala')) return '🐨'
-    if (nombre?.includes('Conejito')) return '🐰'
-    if (nombre?.includes('Dinosaurio')) return '🦕'
-    if (nombre?.includes('Zorro')) return '🦊'
-    if (nombre?.includes('Pingüino')) return '🐧'
-    if (nombre?.includes('León')) return '🦁'
-    if (nombre?.includes('Vaca')) return '🐄'
-    if (nombre?.includes('Unicornio')) return '🦄'
-    if (nombre?.includes('Cohete')) return '🚀'
-    return '💧'
+  function getImagen(nombre) {
+    const base = 'https://ikfhrnsvnqvcizinepct.supabase.co/storage/v1/object/public/productos/'
+    if (nombre?.includes('Capibara')) return base + 'capibara.png'
+    if (nombre?.includes('Panda')) return base + 'panda.png'
+    if (nombre?.includes('Koala')) return base + 'koala.png'
+    if (nombre?.includes('Conejito')) return base + 'conejito.png'
+    if (nombre?.includes('Dinosaurio')) return base + 'dinosaurio.png'
+    if (nombre?.includes('Zorro')) return base + 'zorro.png'
+    if (nombre?.includes('Pingüino')) return base + 'pinguino.png'
+    if (nombre?.includes('León')) return base + 'leon.png'
+    if (nombre?.includes('Vaca')) return base + 'vaca.png'
+    if (nombre?.includes('Unicornio')) return base + 'unicornio.png'
+    if (nombre?.includes('Cohete')) return base + 'cohete.png'
+    return base + 'logo.png'
   }
 
   function handleAgregar() {
@@ -86,10 +87,16 @@ export default function Producto({ agregarAlCarrito }) {
               ? 'linear-gradient(135deg, #fff0f8, #f0e6ff)'
               : 'linear-gradient(135deg, #f0f8ff, #e6fff0)',
             display: 'flex', justifyContent: 'center',
-            alignItems: 'center', padding: '60px',
-            fontSize: '140px'
+            alignItems: 'center', padding: '40px'
           }}>
-            {getEmoji(producto.nombre)}
+            <img
+              src={getImagen(producto.nombre)}
+              alt={producto.nombre}
+              style={{
+                width: '100%', maxWidth: '300px',
+                height: '300px', objectFit: 'contain'
+              }}
+            />
           </div>
 
           {/* Info */}
