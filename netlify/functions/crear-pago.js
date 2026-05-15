@@ -1,4 +1,4 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+const Stripe = require('stripe')
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -8,13 +8,16 @@ exports.handler = async (event) => {
   try {
     const { carrito, email, nombre } = JSON.parse(event.body)
 
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2023-10-16'
+    })
+
     const lineItems = carrito.map(item => ({
       price_data: {
         currency: 'mxn',
         product_data: {
           name: item.nombre,
           description: `Color: ${item.colorElegido}`,
-          images: [],
         },
         unit_amount: Math.round(item.precio * 100),
       },
@@ -26,19 +29,32 @@ exports.handler = async (event) => {
       line_items: lineItems,
       mode: 'payment',
       customer_email: email,
-      success_url: `${process.env.URL}/exito`,
-      cancel_url: `${process.env.URL}/carrito`,
+      success_url: 'https://aquakawaii.netlify.app/exito',
+      cancel_url: 'https://aquakawaii.netlify.app/carrito',
       metadata: { nombre }
     })
 
+    const url = `https://checkout.stripe.com/c/pay/${session.id}`
+
     return {
       statusCode: 200,
-      body: JSON.stringify({ sessionId: session.id })
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      },
+      body: JSON.stringify({ 
+        sessionId: session.id,
+        url: url
+      })
     }
 
   } catch (error) {
+    console.log('Error:', error.message)
     return {
       statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify({ error: error.message })
     }
   }
