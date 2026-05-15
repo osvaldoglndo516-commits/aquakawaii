@@ -1,5 +1,22 @@
 import { useNavigate } from 'react-router-dom'
 
+const base = 'https://ikfhrnsvnqvcizinepct.supabase.co/storage/v1/object/public/productos/'
+
+function getImagen(nombre) {
+  if (nombre?.includes('Capibara')) return base + 'capibara.png'
+  if (nombre?.includes('Panda')) return base + 'panda.png'
+  if (nombre?.includes('Koala')) return base + 'koala.png'
+  if (nombre?.includes('Conejito')) return base + 'conejito.png'
+  if (nombre?.includes('Dinosaurio')) return base + 'dinosaurio.png'
+  if (nombre?.includes('Zorro')) return base + 'zorro.png'
+  if (nombre?.includes('Pingüino')) return base + 'pinguino.png'
+  if (nombre?.includes('León')) return base + 'leon.png'
+  if (nombre?.includes('Vaca')) return base + 'vaca.png'
+  if (nombre?.includes('Unicornio')) return base + 'unicornio.png'
+  if (nombre?.includes('Cohete')) return base + 'cohete.png'
+  return base + 'logo.png'
+}
+
 export default function Carrito({ carrito, eliminarDelCarrito, vaciarCarrito }) {
   const navigate = useNavigate()
   const total = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0)
@@ -39,7 +56,6 @@ export default function Carrito({ carrito, eliminarDelCarrito, vaciarCarrito }) 
           🛒 Mi Carrito
         </h1>
 
-        {/* Items */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '25px' }}>
           {carrito.map((item, i) => (
             <div key={i} style={{
@@ -48,7 +64,16 @@ export default function Carrito({ carrito, eliminarDelCarrito, vaciarCarrito }) 
               alignItems: 'center', gap: '20px',
               boxShadow: '0 4px 15px rgba(0,0,0,0.08)'
             }}>
-              <span style={{ fontSize: '50px' }}>{getEmoji(item.nombre)}</span>
+              <img
+                src={getImagen(item.nombre)}
+                alt={item.nombre}
+                style={{
+                  width: '70px', height: '70px',
+                  objectFit: 'contain', borderRadius: '10px',
+                  background: 'linear-gradient(135deg, #f0f8ff, #e6fff0)',
+                  padding: '5px'
+                }}
+              />
 
               <div style={{ flex: 1 }}>
                 <h3 style={{ margin: '0 0 5px 0', color: '#333' }}>{item.nombre}</h3>
@@ -73,7 +98,6 @@ export default function Carrito({ carrito, eliminarDelCarrito, vaciarCarrito }) 
           ))}
         </div>
 
-        {/* Total */}
         <div style={{
           background: 'white', borderRadius: '20px',
           padding: '25px', marginBottom: '20px',
@@ -95,7 +119,6 @@ export default function Carrito({ carrito, eliminarDelCarrito, vaciarCarrito }) 
           </div>
         </div>
 
-        {/* Botones */}
         <div style={{ display: 'flex', gap: '15px', flexDirection: 'column' }}>
           <button onClick={() => navigate('/checkout')} style={{
             padding: '16px',
@@ -128,19 +151,4 @@ export default function Carrito({ carrito, eliminarDelCarrito, vaciarCarrito }) 
       </div>
     </div>
   )
-}
-
-function getEmoji(nombre) {
-  if (nombre?.includes('Capibara')) return '🦫'
-  if (nombre?.includes('Panda')) return '🐼'
-  if (nombre?.includes('Koala')) return '🐨'
-  if (nombre?.includes('Conejito')) return '🐰'
-  if (nombre?.includes('Dinosaurio')) return '🦕'
-  if (nombre?.includes('Zorro')) return '🦊'
-  if (nombre?.includes('Pingüino')) return '🐧'
-  if (nombre?.includes('León')) return '🦁'
-  if (nombre?.includes('Vaca')) return '🐄'
-  if (nombre?.includes('Unicornio')) return '🦄'
-  if (nombre?.includes('Cohete')) return '🚀'
-  return '💧'
 }
