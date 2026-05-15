@@ -26,8 +26,8 @@ exports.handler = async (event) => {
       line_items: lineItems,
       mode: 'payment',
       customer_email: email,
-      success_url: `${process.env.URL}/exito`,
-      cancel_url: `${process.env.URL}/carrito`,
+      success_url: `https://aquakawaii.netlify.app/exito`,
+cancel_url: `https://aquakawaii.netlify.app/carrito`,
       metadata: { nombre }
     })
 
