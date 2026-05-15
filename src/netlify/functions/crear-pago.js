@@ -30,8 +30,7 @@ exports.handler = async (event) => {
       metadata: { nombre }
     })
 
-    console.log('Session URL:', session.url)
-    console.log('Session ID:', session.id)
+    console.log('Session completa:', JSON.stringify(session))
 
     return {
       statusCode: 200,
