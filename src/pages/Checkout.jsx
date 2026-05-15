@@ -1,14 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { stripePromise } from '../lib/stripe'
 
-export default function Checkout({ carrito, vaciarCarrito }) {
+export default function Checkout({ carrito, vaciarCarrito, usuario }) {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
-    nombre: '',
-    email: '',
+    nombre: usuario?.user_metadata?.nombre || '',
+    email: usuario?.email || '',
     telefono: ''
   })
 
@@ -48,9 +47,7 @@ export default function Checkout({ carrito, vaciarCarrito }) {
         })
       }
 
-      // Redirigir a Stripe
-      const stripe = await stripePromise
-
+      // Llamar a Netlify Function
       const response = await fetch('/.netlify/functions/crear-pago', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -61,11 +58,12 @@ export default function Checkout({ carrito, vaciarCarrito }) {
         })
       })
 
-      const { sessionId, error } = await response.json()
+      const data = await response.json()
 
-      if (error) throw new Error(error)
+      if (data.error) throw new Error(data.error)
 
-      await stripe.redirectToCheckout({ sessionId })
+      // ✅ Nueva forma — redirigir directo a la URL de Stripe
+      window.location.href = data.url
 
     } catch (error) {
       console.error(error)
@@ -111,10 +109,7 @@ export default function Checkout({ carrito, vaciarCarrito }) {
           padding: '30px',
           boxShadow: '0 8px 25px rgba(0,0,0,0.08)'
         }}>
-          <h2 style={{
-            margin: '0 0 25px 0', color: '#333',
-            fontSize: '22px'
-          }}>
+          <h2 style={{ margin: '0 0 25px 0', color: '#333', fontSize: '22px' }}>
             📋 Datos de envío
           </h2>
 
@@ -138,8 +133,7 @@ export default function Checkout({ carrito, vaciarCarrito }) {
                   width: '100%', padding: '12px 16px',
                   border: '2px solid #eee', borderRadius: '12px',
                   fontSize: '15px', outline: 'none',
-                  boxSizing: 'border-box',
-                  transition: 'border-color 0.2s'
+                  boxSizing: 'border-box', transition: 'border-color 0.2s'
                 }}
                 onFocus={e => e.target.style.borderColor = '#ff6b9d'}
                 onBlur={e => e.target.style.borderColor = '#eee'}
@@ -164,8 +158,7 @@ export default function Checkout({ carrito, vaciarCarrito }) {
                   width: '100%', padding: '12px 16px',
                   border: '2px solid #eee', borderRadius: '12px',
                   fontSize: '15px', outline: 'none',
-                  boxSizing: 'border-box',
-                  transition: 'border-color 0.2s'
+                  boxSizing: 'border-box', transition: 'border-color 0.2s'
                 }}
                 onFocus={e => e.target.style.borderColor = '#ff6b9d'}
                 onBlur={e => e.target.style.borderColor = '#eee'}
@@ -188,8 +181,7 @@ export default function Checkout({ carrito, vaciarCarrito }) {
                   width: '100%', padding: '12px 16px',
                   border: '2px solid #eee', borderRadius: '12px',
                   fontSize: '15px', outline: 'none',
-                  boxSizing: 'border-box',
-                  transition: 'border-color 0.2s'
+                  boxSizing: 'border-box', transition: 'border-color 0.2s'
                 }}
                 onFocus={e => e.target.style.borderColor = '#ff6b9d'}
                 onBlur={e => e.target.style.borderColor = '#eee'}
@@ -225,9 +217,7 @@ export default function Checkout({ carrito, vaciarCarrito }) {
             boxShadow: '0 8px 25px rgba(0,0,0,0.08)',
             marginBottom: '15px'
           }}>
-            <h2 style={{
-              margin: '0 0 20px 0', color: '#333', fontSize: '20px'
-            }}>
+            <h2 style={{ margin: '0 0 20px 0', color: '#333', fontSize: '20px' }}>
               🛒 Resumen
             </h2>
 
@@ -257,12 +247,8 @@ export default function Checkout({ carrito, vaciarCarrito }) {
               display: 'flex', justifyContent: 'space-between',
               alignItems: 'center'
             }}>
-              <span style={{ fontWeight: 'bold', fontSize: '18px', color: '#333' }}>
-                Total
-              </span>
-              <span style={{
-                fontWeight: 'bold', fontSize: '24px', color: '#ff6b9d'
-              }}>
+              <span style={{ fontWeight: 'bold', fontSize: '18px', color: '#333' }}>Total</span>
+              <span style={{ fontWeight: 'bold', fontSize: '24px', color: '#ff6b9d' }}>
                 ${total} MXN
               </span>
             </div>
@@ -271,8 +257,7 @@ export default function Checkout({ carrito, vaciarCarrito }) {
           {/* Seguridad */}
           <div style={{
             background: 'linear-gradient(135deg, #f0fff4, #e6f7ff)',
-            borderRadius: '15px', padding: '15px',
-            textAlign: 'center'
+            borderRadius: '15px', padding: '15px', textAlign: 'center'
           }}>
             <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', color: '#555', fontSize: '14px' }}>
               🔒 Pago 100% seguro
