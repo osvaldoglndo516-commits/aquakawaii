@@ -59,14 +59,22 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
       })
 
       const data = await response.json()
+      
+      // ✅ Debug — ver qué regresa la función
+      console.log('Respuesta función:', data)
+      console.log('URL de Stripe:', data.url)
 
       if (data.error) throw new Error(data.error)
 
-      // ✅ Nueva forma — redirigir directo a la URL de Stripe
+      if (!data.url) {
+        throw new Error('No se recibió URL de pago')
+      }
+
+      // Redirigir a Stripe
       window.location.href = data.url
 
     } catch (error) {
-      console.error(error)
+      console.error('Error completo:', error)
       alert('Error al procesar el pago: ' + error.message)
       setLoading(false)
     }
