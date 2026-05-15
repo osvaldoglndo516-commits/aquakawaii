@@ -35,7 +35,7 @@ export default function MisPedidos({ usuario }) {
   async function continuarPago(pedido) {
     setLoadingPago(pedido.id)
     try {
-      const response = await fetch('/.netlify/functions/crear-pago', {
+      const response = await fetch('/api/crear-pago', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
