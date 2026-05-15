@@ -18,68 +18,68 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
   }
 
   async function handlePago(e) {
-    e.preventDefault()
+  e.preventDefault()
 
-    if (!form.nombre || !form.email) {
-      alert('Por favor llena todos los campos requeridos')
-      return
-    }
-
-    if (carrito.length === 0) {
-      alert('Tu carrito está vacío')
-      return
-    }
-
-    setLoading(true)
-
-    try {
-      // Guardar pedidos en Supabase
-      for (const item of carrito) {
-        await supabase.from('pedidos').insert({
-          nombre_cliente: form.nombre,
-          email_cliente: form.email,
-          producto_id: item.id,
-          nombre_producto: item.nombre,
-          color_elegido: item.colorElegido,
-          cantidad: item.cantidad || 1,
-          precio_total: item.precio,
-          estado: 'pendiente'
-        })
-      }
-
-      // Llamar a Netlify Function
-      const response = await fetch('/.netlify/functions/crear-pago', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          carrito,
-          email: form.email,
-          nombre: form.nombre
-        })
-      })
-
-      const data = await response.json()
-      
-      // ✅ Debug — ver qué regresa la función
-      console.log('Respuesta función:', data)
-      console.log('URL de Stripe:', data.url)
-
-      if (data.error) throw new Error(data.error)
-
-      if (!data.url) {
-        throw new Error('No se recibió URL de pago')
-      }
-
-      // Redirigir a Stripe
-      window.location.href = data.url
-
-    } catch (error) {
-      console.error('Error completo:', error)
-      alert('Error al procesar el pago: ' + error.message)
-      setLoading(false)
-    }
+  if (!form.nombre || !form.email) {
+    alert('Por favor llena todos los campos requeridos')
+    return
   }
 
+  if (carrito.length === 0) {
+    alert('Tu carrito está vacío')
+    return
+  }
+
+  setLoading(true)
+
+  try {
+    // Guardar pedidos en Supabase
+    for (const item of carrito) {
+      await supabase.from('pedidos').insert({
+        nombre_cliente: form.nombre,
+        email_cliente: form.email,
+        producto_id: item.id,
+        nombre_producto: item.nombre,
+        color_elegido: item.colorElegido,
+        cantidad: item.cantidad || 1,
+        precio_total: item.precio,
+        estado: 'pendiente'
+      })
+    }
+
+    // Llamar a Netlify Function
+    const response = await fetch('/.netlify/functions/crear-pago', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        carrito,
+        email: form.email,
+        nombre: form.nombre
+      })
+    })
+
+    const data = await response.json()
+    console.log('Respuesta función:', data)
+
+    if (data.error) throw new Error(data.error)
+
+    if (!data.sessionId) {
+      throw new Error('No se recibió sesión de pago')
+    }
+
+    // Redirigir con Stripe.js usando sessionId
+    const { loadStripe } = await import('@stripe/stripe-js')
+    const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY)
+    const { error } = await stripe.redirectToCheckout({ sessionId: data.sessionId })
+    
+    if (error) throw new Error(error.message)
+
+  } catch (error) {
+    console.error('Error completo:', error)
+    alert('Error al procesar el pago: ' + error.message)
+    setLoading(false)
+  }
+}
   if (carrito.length === 0) {
     return (
       <div style={{
