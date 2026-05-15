@@ -34,7 +34,7 @@ exports.handler = async (event) => {
       metadata: { nombre }
     })
 
-    const url = `https://checkout.stripe.com/c/pay/${session.id}`
+    const url = `https://checkout.stripe.com/pay/${session.id}`
 
     return {
       statusCode: 200,
