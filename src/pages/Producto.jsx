@@ -1,0 +1,205 @@
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
+
+export default function Producto({ agregarAlCarrito }) {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const [producto, setProducto] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [colorElegido, setColorElegido] = useState('')
+  const [agregado, setAgregado] = useState(false)
+
+  useEffect(() => {
+    cargarProducto()
+  }, [id])
+
+  async function cargarProducto() {
+    const { data, error } = await supabase
+      .from('productos')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error) console.error(error)
+    else {
+      setProducto(data)
+      setColorElegido(data.colores?.[0] || '')
+    }
+    setLoading(false)
+  }
+
+  function getEmoji(nombre) {
+    if (nombre?.includes('Capibara')) return '🦫'
+    if (nombre?.includes('Panda')) return '🐼'
+    if (nombre?.includes('Koala')) return '🐨'
+    if (nombre?.includes('Conejito')) return '🐰'
+    if (nombre?.includes('Dinosaurio')) return '🦕'
+    if (nombre?.includes('Zorro')) return '🦊'
+    if (nombre?.includes('Pingüino')) return '🐧'
+    if (nombre?.includes('León')) return '🦁'
+    if (nombre?.includes('Vaca')) return '🐄'
+    if (nombre?.includes('Unicornio')) return '🦄'
+    if (nombre?.includes('Cohete')) return '🚀'
+    return '💧'
+  }
+
+  function handleAgregar() {
+    if (!colorElegido) {
+      alert('Por favor selecciona un color')
+      return
+    }
+    agregarAlCarrito({ ...producto, colorElegido })
+    setAgregado(true)
+    setTimeout(() => setAgregado(false), 2000)
+  }
+
+  if (loading) return (
+    <div style={{
+      display: 'flex', justifyContent: 'center',
+      alignItems: 'center', minHeight: '60vh', fontSize: '24px'
+    }}>
+      💧 Cargando...
+    </div>
+  )
+
+  if (!producto) return (
+    <div style={{ textAlign: 'center', padding: '60px' }}>
+      <p>Producto no encontrado</p>
+      <button onClick={() => navigate('/')}>Regresar</button>
+    </div>
+  )
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#fdf0f8', padding: '30px' }}>
+      <div style={{
+        maxWidth: '900px', margin: '0 auto',
+        background: 'white', borderRadius: '30px',
+        overflow: 'hidden',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.1)'
+      }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+
+          {/* Imagen */}
+          <div style={{
+            background: producto.es_edicion_especial
+              ? 'linear-gradient(135deg, #fff0f8, #f0e6ff)'
+              : 'linear-gradient(135deg, #f0f8ff, #e6fff0)',
+            display: 'flex', justifyContent: 'center',
+            alignItems: 'center', padding: '60px',
+            fontSize: '140px'
+          }}>
+            {getEmoji(producto.nombre)}
+          </div>
+
+          {/* Info */}
+          <div style={{ padding: '40px' }}>
+
+            {producto.es_edicion_especial && (
+              <div style={{
+                display: 'inline-block',
+                background: 'linear-gradient(135deg, #ffd700, #ff8c00)',
+                color: 'white', padding: '6px 16px',
+                borderRadius: '20px', fontSize: '13px',
+                fontWeight: 'bold', marginBottom: '15px'
+              }}>
+                ⭐ Edición Especial
+              </div>
+            )}
+
+            <h1 style={{ fontSize: '32px', margin: '0 0 10px 0', color: '#333' }}>
+              {producto.nombre}
+            </h1>
+
+            <p style={{
+              fontSize: '36px', fontWeight: 'bold', margin: '0 0 20px 0',
+              color: producto.es_edicion_especial ? '#ff8c00' : '#ff6b9d'
+            }}>
+              ${producto.precio} MXN
+            </p>
+
+            <p style={{
+              color: '#888', fontSize: '15px',
+              lineHeight: '1.6', marginBottom: '25px'
+            }}>
+              {producto.descripcion}
+            </p>
+
+            {/* Características */}
+            <div style={{
+              background: '#f9f9f9', borderRadius: '15px',
+              padding: '15px', marginBottom: '25px'
+            }}>
+              {['700ml capacidad', 'Libre de BPA', 'Popote de silicona',
+                'Asa portátil', 'Boca ancha', 'A prueba de fugas'].map((c, i) => (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center',
+                  gap: '8px', padding: '4px 0',
+                  fontSize: '14px', color: '#555'
+                }}>
+                  <span style={{ color: '#4CAF50' }}>✓</span> {c}
+                </div>
+              ))}
+            </div>
+
+            {/* Selector de color */}
+            <div style={{ marginBottom: '25px' }}>
+              <p style={{
+                fontWeight: 'bold', color: '#333',
+                marginBottom: '10px', fontSize: '15px'
+              }}>
+                Color: <span style={{ color: '#ff6b9d' }}>{colorElegido}</span>
+              </p>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                {producto.colores?.map((color, i) => (
+                  <button key={i} onClick={() => setColorElegido(color)} style={{
+                    padding: '8px 18px',
+                    borderRadius: '20px',
+                    border: colorElegido === color
+                      ? '3px solid #ff6b9d'
+                      : '2px solid #ddd',
+                    background: colorElegido === color ? '#fff0f5' : 'white',
+                    cursor: 'pointer', fontSize: '13px',
+                    fontWeight: colorElegido === color ? 'bold' : 'normal',
+                    color: colorElegido === color ? '#ff6b9d' : '#666',
+                    transition: 'all 0.2s'
+                  }}>
+                    {color}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Botones */}
+            <div style={{ display: 'flex', gap: '12px', flexDirection: 'column' }}>
+              <button onClick={handleAgregar} style={{
+                padding: '15px',
+                background: agregado
+                  ? 'linear-gradient(135deg, #4CAF50, #2e7d32)'
+                  : producto.es_edicion_especial
+                    ? 'linear-gradient(135deg, #ffd700, #ff8c00)'
+                    : 'linear-gradient(135deg, #ff6b9d, #c44dff)',
+                color: 'white', border: 'none',
+                borderRadius: '15px', fontSize: '17px',
+                fontWeight: 'bold', cursor: 'pointer',
+                transition: 'all 0.3s'
+              }}>
+                {agregado ? '✅ Agregado!' : '🛒 Agregar al carrito'}
+              </button>
+
+              <button onClick={() => navigate('/')} style={{
+                padding: '12px',
+                background: 'white',
+                color: '#888', border: '2px solid #eee',
+                borderRadius: '15px', fontSize: '15px',
+                cursor: 'pointer'
+              }}>
+                Seguir comprando
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
