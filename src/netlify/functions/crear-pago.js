@@ -34,12 +34,10 @@ exports.handler = async (event) => {
       metadata: { nombre }
     })
 
-    // Recuperar la sesión completa para obtener la URL
-    const sessionCompleta = await stripe.checkout.sessions.retrieve(session.id)
-    
-    console.log('URL:', sessionCompleta.url)
+    // Construir URL manualmente con el ID de sesión
+    const url = `https://checkout.stripe.com/c/pay/${session.id}`
 
-    const url = sessionCompleta.url || `https://checkout.stripe.com/pay/${session.id}`
+    console.log('URL construida:', url)
 
     return {
       statusCode: 200,
