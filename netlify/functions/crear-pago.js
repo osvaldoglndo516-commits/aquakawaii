@@ -17,7 +17,7 @@ exports.handler = async (event) => {
         currency: 'mxn',
         product_data: {
           name: item.nombre,
-          description: `Color: ${item.colorElegido}`,
+          description: item.colorElegido ? `Color: ${item.colorElegido}` : item.nombre,
         },
         unit_amount: Math.round(item.precio * 100),
       },
@@ -34,7 +34,11 @@ exports.handler = async (event) => {
       metadata: { nombre }
     })
 
-    const url = `https://checkout.stripe.com/pay/${session.id}`
+    console.log('Session completa:', JSON.stringify({ id: session.id, url: session.url }))
+
+    if (!session.url) {
+      throw new Error('Stripe no devolvió URL: ' + session.id)
+    }
 
     return {
       statusCode: 200,
@@ -44,7 +48,7 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify({ 
         sessionId: session.id,
-        url: url
+        url: session.url
       })
     }
 
