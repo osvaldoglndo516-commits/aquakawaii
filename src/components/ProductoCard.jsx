@@ -1,18 +1,19 @@
 import { Link } from 'react-router-dom'
 
 function getImagen(nombre) {
-  if (nombre?.includes('Capibara')) return '/imagenes/ChatGPT Image 14 may 2026, 02_34_17 p.m.png'
-  if (nombre?.includes('Panda')) return '/imagenes/ChatGPT Image 14 may 2026, 02_34_43 p.m.png'
-  if (nombre?.includes('Koala')) return '/imagenes/ChatGPT Image 14 may 2026, 02_34_59 p.m.png'
-  if (nombre?.includes('Conejito')) return '/imagenes/ChatGPT Image 14 may 2026, 02_37_53 p.m.png'
-  if (nombre?.includes('Dinosaurio')) return '/imagenes/ChatGPT Image 14 may 2026, 02_39_32 p.m.png'
-  if (nombre?.includes('Zorro')) return '/imagenes/ChatGPT Image 14 may 2026, 02_41_30 p.m.png'
-  if (nombre?.includes('Pingüino')) return '/imagenes/ChatGPT Image 14 may 2026, 02_43_28 p.m.png'
-  if (nombre?.includes('León')) return '/imagenes/ChatGPT Image 14 may 2026, 02_46_56 p.m.png'
-  if (nombre?.includes('Vaca')) return '/imagenes/ChatGPT Image 14 may 2026, 02_48_28 p.m.png'
-  if (nombre?.includes('Unicornio')) return '/imagenes/ChatGPT Image 14 may 2026, 02_50_47 p.m.png'
-  if (nombre?.includes('Cohete')) return '/imagenes/ChatGPT Image 14 may 2026, 02_53_51 p.m.png'
-  return null
+  const base = 'https://ikfhrnsvnqvcizinepct.supabase.co/storage/v1/object/public/productos/'
+  if (nombre?.includes('Capibara')) return base + 'capibara.png'
+  if (nombre?.includes('Panda')) return base + 'panda.png'
+  if (nombre?.includes('Koala')) return base + 'koala.png'
+  if (nombre?.includes('Conejito')) return base + 'conejito.png'
+  if (nombre?.includes('Dinosaurio')) return base + 'dinosaurio.png'
+  if (nombre?.includes('Zorro')) return base + 'zorro.png'
+  if (nombre?.includes('Pingüino')) return base + 'pinguino.png'
+  if (nombre?.includes('León')) return base + 'leon.png'
+  if (nombre?.includes('Vaca')) return base + 'vaca.png'
+  if (nombre?.includes('Unicornio')) return base + 'unicornio.png'
+  if (nombre?.includes('Cohete')) return base + 'cohete.png'
+  return base + 'logo.png'
 }
 
 export default function ProductoCard({ producto, agregarAlCarrito }) {
@@ -37,7 +38,6 @@ export default function ProductoCard({ producto, agregarAlCarrito }) {
       e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.1)'
     }}>
 
-      {/* Badge edición especial */}
       {producto.es_edicion_especial && (
         <div style={{
           position: 'absolute',
@@ -52,7 +52,6 @@ export default function ProductoCard({ producto, agregarAlCarrito }) {
         </div>
       )}
 
-      {/* Imagen */}
       <Link to={`/producto/${producto.id}`} style={{ textDecoration: 'none' }}>
         <div style={{
           background: producto.es_edicion_especial
@@ -65,22 +64,18 @@ export default function ProductoCard({ producto, agregarAlCarrito }) {
           minHeight: '220px',
           overflow: 'hidden'
         }}>
-          {imagen ? (
-            <img
-              src={imagen}
-              alt={producto.nombre}
-              style={{
-                width: '100%',
-                height: '200px',
-                objectFit: 'contain',
-                transition: 'transform 0.3s ease'
-              }}
-              onMouseEnter={e => e.target.style.transform = 'scale(1.05)'}
-              onMouseLeave={e => e.target.style.transform = 'scale(1)'}
-            />
-          ) : (
-            <span style={{ fontSize: '80px' }}>💧</span>
-          )}
+          <img
+            src={imagen}
+            alt={producto.nombre}
+            style={{
+              width: '100%',
+              height: '200px',
+              objectFit: 'contain',
+              transition: 'transform 0.3s ease'
+            }}
+            onMouseEnter={e => e.target.style.transform = 'scale(1.05)'}
+            onMouseLeave={e => e.target.style.transform = 'scale(1)'}
+          />
         </div>
 
         <div style={{ padding: '20px' }}>
@@ -98,7 +93,6 @@ export default function ProductoCard({ producto, agregarAlCarrito }) {
             {producto.descripcion?.substring(0, 60)}...
           </p>
 
-          {/* Colores */}
           <div style={{ marginBottom: '15px' }}>
             <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#999' }}>
               Colores disponibles:
@@ -124,7 +118,6 @@ export default function ProductoCard({ producto, agregarAlCarrito }) {
         </div>
       </Link>
 
-      {/* Botón */}
       <div style={{ padding: '0 20px 20px' }}>
         <button
           onClick={() => agregarAlCarrito(producto)}
