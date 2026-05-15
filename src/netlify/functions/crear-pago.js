@@ -30,7 +30,11 @@ exports.handler = async (event) => {
       metadata: { nombre }
     })
 
-    console.log('Session completa:', JSON.stringify(session))
+    console.log('Session ID:', session.id)
+    console.log('Session URL:', session.url)
+
+    // Si Stripe no devuelve url, construirla manualmente
+    const url = session.url || `https://checkout.stripe.com/c/pay/${session.id}`
 
     return {
       statusCode: 200,
@@ -40,7 +44,7 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify({ 
         sessionId: session.id,
-        url: session.url
+        url: url
       })
     }
 
