@@ -1,4 +1,4 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+const Stripe = require('stripe')
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -7,6 +7,10 @@ exports.handler = async (event) => {
 
   try {
     const { carrito, email, nombre } = JSON.parse(event.body)
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2023-10-16'
+    })
 
     const lineItems = carrito.map(item => ({
       price_data: {
@@ -20,11 +24,7 @@ exports.handler = async (event) => {
       quantity: item.cantidad || 1,
     }))
 
-    const stripe_client = require('stripe')(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2023-10-16'
-    })
-
-    const session = await stripe_client.checkout.sessions.create({
+    const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
@@ -34,10 +34,12 @@ exports.handler = async (event) => {
       metadata: { nombre }
     })
 
-    console.log('Session URL:', session.url)
-    console.log('Session ID:', session.id)
+    // Recuperar la sesión completa para obtener la URL
+    const sessionCompleta = await stripe.checkout.sessions.retrieve(session.id)
+    
+    console.log('URL:', sessionCompleta.url)
 
-    const url = session.url || `https://checkout.stripe.com/pay/${session.id}`
+    const url = sessionCompleta.url || `https://checkout.stripe.com/pay/${session.id}`
 
     return {
       statusCode: 200,
