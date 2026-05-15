@@ -24,7 +24,6 @@ exports.handler = async (event) => {
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      ui_mode: 'hosted',
       customer_email: email,
       success_url: 'https://aquakawaii.netlify.app/exito',
       cancel_url: 'https://aquakawaii.netlify.app/carrito',
