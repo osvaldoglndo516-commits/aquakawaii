@@ -5,7 +5,8 @@ import { supabase } from '../lib/supabase'
 export default function MisPedidos({ usuario }) {
   const navigate = useNavigate()
   const [pedidos, setPedidos] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [loadingPago, setLoadingPago] = useState(null)
 
   useEffect(() => {
     if (!usuario) { navigate('/login'); return }
@@ -13,6 +14,7 @@ export default function MisPedidos({ usuario }) {
   }, [usuario])
 
   async function cargarPedidos() {
+    setLoading(true)
     const { data, error } = await supabase
       .from('pedidos')
       .select('*')
@@ -22,6 +24,41 @@ export default function MisPedidos({ usuario }) {
     if (error) console.error(error)
     else setPedidos(data)
     setLoading(false)
+  }
+
+  async function cancelarPedido(id) {
+    if (!confirm('¿Cancelar este pedido?')) return
+    const { error } = await supabase.from('pedidos').delete().eq('id', id)
+    if (!error) cargarPedidos()
+  }
+
+  async function continuarPago(pedido) {
+    setLoadingPago(pedido.id)
+    try {
+      const response = await fetch('/.netlify/functions/crear-pago', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          carrito: [{
+            nombre: pedido.nombre_producto,
+            precio: pedido.precio_total,
+            cantidad: pedido.cantidad,
+            colorElegido: pedido.color_elegido
+          }],
+          email: pedido.email_cliente,
+          nombre: pedido.nombre_cliente
+        })
+      })
+      const data = await response.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        alert('Error al generar el pago')
+      }
+    } catch (error) {
+      alert('Error: ' + error.message)
+    }
+    setLoadingPago(null)
   }
 
   function getEmoji(nombre) {
@@ -69,7 +106,6 @@ export default function MisPedidos({ usuario }) {
     <div style={{ minHeight: '100vh', background: '#fdf0f8', padding: '40px 30px' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
 
-        {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <h1 style={{
             fontSize: '36px', margin: '0 0 10px 0',
@@ -85,7 +121,6 @@ export default function MisPedidos({ usuario }) {
           </p>
         </div>
 
-        {/* Sin pedidos */}
         {pedidos.length === 0 ? (
           <div style={{
             background: 'white', borderRadius: '25px',
@@ -93,9 +128,7 @@ export default function MisPedidos({ usuario }) {
             boxShadow: '0 8px 25px rgba(0,0,0,0.08)'
           }}>
             <span style={{ fontSize: '70px', display: 'block', marginBottom: '20px' }}>🛒</span>
-            <h2 style={{ color: '#888', margin: '0 0 10px 0' }}>
-              Aún no tienes pedidos
-            </h2>
+            <h2 style={{ color: '#888', margin: '0 0 10px 0' }}>Aún no tienes pedidos</h2>
             <p style={{ color: '#aaa', marginBottom: '30px' }}>
               ¡Explora nuestra colección y encuentra tu botella favorita!
             </p>
@@ -114,13 +147,13 @@ export default function MisPedidos({ usuario }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {pedidos.map((pedido, i) => {
               const estado = getEstadoColor(pedido.estado)
+              const isPendiente = pedido.estado === 'pendiente'
               return (
                 <div key={i} style={{
                   background: 'white', borderRadius: '20px',
                   overflow: 'hidden',
                   boxShadow: '0 8px 25px rgba(0,0,0,0.08)'
                 }}>
-                  {/* Header del pedido */}
                   <div style={{
                     background: 'linear-gradient(135deg, #fff0f8, #f5e6ff)',
                     padding: '16px 24px',
@@ -135,44 +168,28 @@ export default function MisPedidos({ usuario }) {
                         {formatFecha(pedido.creado_en)}
                       </p>
                     </div>
-
-                    {/* Estado */}
                     <div style={{
-                      background: estado.bg,
-                      color: estado.color,
-                      padding: '6px 16px',
-                      borderRadius: '20px',
-                      fontSize: '13px',
-                      fontWeight: 'bold'
+                      background: estado.bg, color: estado.color,
+                      padding: '6px 16px', borderRadius: '20px',
+                      fontSize: '13px', fontWeight: 'bold'
                     }}>
                       {estado.label}
                     </div>
                   </div>
 
-                  {/* Detalle del pedido */}
-                  <div style={{
-                    padding: '20px 24px',
-                    display: 'flex', alignItems: 'center',
-                    gap: '20px'
-                  }}>
-                    {/* Emoji */}
+                  <div style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', gap: '20px' }}>
                     <div style={{
                       width: '70px', height: '70px',
                       background: 'linear-gradient(135deg, #fff0f8, #f5e6ff)',
                       borderRadius: '15px',
                       display: 'flex', alignItems: 'center',
-                      justifyContent: 'center', fontSize: '40px',
-                      flexShrink: 0
+                      justifyContent: 'center', fontSize: '40px', flexShrink: 0
                     }}>
                       {getEmoji(pedido.nombre_producto)}
                     </div>
 
-                    {/* Info */}
                     <div style={{ flex: 1 }}>
-                      <h3 style={{
-                        margin: '0 0 6px 0', color: '#333',
-                        fontSize: '18px', fontWeight: 'bold'
-                      }}>
+                      <h3 style={{ margin: '0 0 6px 0', color: '#333', fontSize: '18px', fontWeight: 'bold' }}>
                         {pedido.nombre_producto}
                       </h3>
                       <p style={{ margin: '0 0 4px 0', color: '#888', fontSize: '14px' }}>
@@ -183,21 +200,46 @@ export default function MisPedidos({ usuario }) {
                       </p>
                     </div>
 
-                    {/* Precio */}
                     <div style={{ textAlign: 'right' }}>
-                      <p style={{
-                        margin: 0, fontSize: '24px',
-                        fontWeight: 'bold', color: '#ff6b9d'
-                      }}>
+                      <p style={{ margin: '0 0 12px 0', fontSize: '24px', fontWeight: 'bold', color: '#ff6b9d' }}>
                         ${pedido.precio_total} MXN
                       </p>
+
+                      {isPendiente && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <button
+                            onClick={() => continuarPago(pedido)}
+                            disabled={loadingPago === pedido.id}
+                            style={{
+                              padding: '8px 16px',
+                              background: 'linear-gradient(135deg, #ff6b9d, #c44dff)',
+                              color: 'white', border: 'none',
+                              borderRadius: '12px', fontSize: '13px',
+                              fontWeight: 'bold', cursor: 'pointer',
+                              whiteSpace: 'nowrap'
+                            }}>
+                            {loadingPago === pedido.id ? '⏳...' : '💳 Continuar pago'}
+                          </button>
+                          <button
+                            onClick={() => cancelarPedido(pedido.id)}
+                            style={{
+                              padding: '8px 16px',
+                              background: 'white', color: '#ff4444',
+                              border: '1px solid #ff4444',
+                              borderRadius: '12px', fontSize: '13px',
+                              fontWeight: 'bold', cursor: 'pointer',
+                              whiteSpace: 'nowrap'
+                            }}>
+                            ✕ Cancelar
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
               )
             })}
 
-            {/* Botón seguir comprando */}
             <div style={{ textAlign: 'center', marginTop: '10px' }}>
               <button onClick={() => navigate('/')} style={{
                 padding: '14px 35px',
