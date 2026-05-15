@@ -46,7 +46,7 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
         })
       }
 
-      const response = await fetch('/.netlify/functions/crear-pago', {
+      const response = await fetch('/api/crear-pago', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
