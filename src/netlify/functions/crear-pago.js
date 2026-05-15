@@ -14,7 +14,6 @@ exports.handler = async (event) => {
         product_data: {
           name: item.nombre,
           description: `Color: ${item.colorElegido}`,
-          images: [],
         },
         unit_amount: Math.round(item.precio * 100),
       },
@@ -25,11 +24,15 @@ exports.handler = async (event) => {
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
+      ui_mode: 'hosted',
       customer_email: email,
-      success_url: `https://aquakawaii.netlify.app/exito`,
-cancel_url: `https://aquakawaii.netlify.app/carrito`,
+      success_url: 'https://aquakawaii.netlify.app/exito',
+      cancel_url: 'https://aquakawaii.netlify.app/carrito',
       metadata: { nombre }
     })
+
+    console.log('Session URL:', session.url)
+    console.log('Session ID:', session.id)
 
     return {
       statusCode: 200,
@@ -39,11 +42,12 @@ cancel_url: `https://aquakawaii.netlify.app/carrito`,
       },
       body: JSON.stringify({ 
         sessionId: session.id,
-        url: session.url  // ✅ Esta línea es la que faltaba
+        url: session.url
       })
     }
 
   } catch (error) {
+    console.log('Error:', error.message)
     return {
       statusCode: 500,
       headers: {
