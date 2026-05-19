@@ -9,7 +9,8 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
   const [form, setForm] = useState({
     nombre: usuario?.user_metadata?.nombre || '',
     email: usuario?.email || '',
-    telefono: ''
+    telefono: '',
+    direccion: ''
   })
 
   const total = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0)
@@ -21,7 +22,7 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
   async function handlePago(e) {
     e.preventDefault()
 
-    if (!form.nombre || !form.email) {
+    if (!form.nombre || !form.email || !form.direccion) {
       alert('Por favor llena todos los campos requeridos')
       return
     }
@@ -43,7 +44,8 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
           color_elegido: item.colorElegido,
           cantidad: item.cantidad || 1,
           precio_total: item.precio,
-          estado: 'pendiente'
+          estado: 'pendiente',
+          direccion_envio: form.direccion
         })
       }
 
@@ -58,7 +60,6 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
       })
 
       const data = await response.json()
-
       if (data.error) throw new Error(data.error)
 
       if (data.url) {
@@ -106,7 +107,7 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
         gap: '20px'
       }}>
 
-        {/* Resumen — va primero en mobile */}
+        {/* Resumen mobile */}
         {isMobile && (
           <div>
             <div style={{
@@ -165,11 +166,9 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
           <form onSubmit={handlePago} style={{
             display: 'flex', flexDirection: 'column', gap: '14px'
           }}>
+
             <div>
-              <label style={{
-                display: 'block', marginBottom: '6px',
-                color: '#555', fontWeight: '600', fontSize: '14px'
-              }}>
+              <label style={{ display: 'block', marginBottom: '6px', color: '#555', fontWeight: '600', fontSize: '14px' }}>
                 Nombre completo *
               </label>
               <input
@@ -178,22 +177,14 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
                 onChange={handleChange}
                 required
                 placeholder="Tu nombre"
-                style={{
-                  width: '100%', padding: '12px 16px',
-                  border: '2px solid #eee', borderRadius: '12px',
-                  fontSize: '15px', outline: 'none',
-                  boxSizing: 'border-box'
-                }}
+                style={{ width: '100%', padding: '12px 16px', border: '2px solid #eee', borderRadius: '12px', fontSize: '15px', outline: 'none', boxSizing: 'border-box' }}
                 onFocus={e => e.target.style.borderColor = '#ff6b9d'}
                 onBlur={e => e.target.style.borderColor = '#eee'}
               />
             </div>
 
             <div>
-              <label style={{
-                display: 'block', marginBottom: '6px',
-                color: '#555', fontWeight: '600', fontSize: '14px'
-              }}>
+              <label style={{ display: 'block', marginBottom: '6px', color: '#555', fontWeight: '600', fontSize: '14px' }}>
                 Correo electrónico *
               </label>
               <input
@@ -203,22 +194,14 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
                 onChange={handleChange}
                 required
                 placeholder="correo@ejemplo.com"
-                style={{
-                  width: '100%', padding: '12px 16px',
-                  border: '2px solid #eee', borderRadius: '12px',
-                  fontSize: '15px', outline: 'none',
-                  boxSizing: 'border-box'
-                }}
+                style={{ width: '100%', padding: '12px 16px', border: '2px solid #eee', borderRadius: '12px', fontSize: '15px', outline: 'none', boxSizing: 'border-box' }}
                 onFocus={e => e.target.style.borderColor = '#ff6b9d'}
                 onBlur={e => e.target.style.borderColor = '#eee'}
               />
             </div>
 
             <div>
-              <label style={{
-                display: 'block', marginBottom: '6px',
-                color: '#555', fontWeight: '600', fontSize: '14px'
-              }}>
+              <label style={{ display: 'block', marginBottom: '6px', color: '#555', fontWeight: '600', fontSize: '14px' }}>
                 Teléfono (opcional)
               </label>
               <input
@@ -226,12 +209,24 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
                 value={form.telefono}
                 onChange={handleChange}
                 placeholder="555-123-4567"
-                style={{
-                  width: '100%', padding: '12px 16px',
-                  border: '2px solid #eee', borderRadius: '12px',
-                  fontSize: '15px', outline: 'none',
-                  boxSizing: 'border-box'
-                }}
+                style={{ width: '100%', padding: '12px 16px', border: '2px solid #eee', borderRadius: '12px', fontSize: '15px', outline: 'none', boxSizing: 'border-box' }}
+                onFocus={e => e.target.style.borderColor = '#ff6b9d'}
+                onBlur={e => e.target.style.borderColor = '#eee'}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', color: '#555', fontWeight: '600', fontSize: '14px' }}>
+                Dirección de envío *
+              </label>
+              <textarea
+                name="direccion"
+                value={form.direccion}
+                onChange={handleChange}
+                required
+                placeholder="Calle, número, colonia, ciudad, estado, CP"
+                rows={3}
+                style={{ width: '100%', padding: '12px 16px', border: '2px solid #eee', borderRadius: '12px', fontSize: '15px', outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }}
                 onFocus={e => e.target.style.borderColor = '#ff6b9d'}
                 onBlur={e => e.target.style.borderColor = '#eee'}
               />
@@ -242,9 +237,7 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
               disabled={loading}
               style={{
                 padding: '16px',
-                background: loading
-                  ? '#ccc'
-                  : 'linear-gradient(135deg, #ff6b9d, #c44dff)',
+                background: loading ? '#ccc' : 'linear-gradient(135deg, #ff6b9d, #c44dff)',
                 color: 'white', border: 'none',
                 borderRadius: '15px', fontSize: '17px',
                 fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer',
@@ -300,7 +293,6 @@ export default function Checkout({ carrito, vaciarCarrito, usuario }) {
                 </span>
               </div>
             </div>
-
             <div style={{
               background: 'linear-gradient(135deg, #f0fff4, #e6f7ff)',
               borderRadius: '15px', padding: '15px', textAlign: 'center'
